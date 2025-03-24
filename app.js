@@ -4,6 +4,7 @@ const mongoose = require('mongoose')
 const connectDB = require('./config/connectDB')
 
 const authRoutes = require('./routes/authRoutes')
+const productRoutes = require('./routes/productRoutes')
 
 
 const app = express()
@@ -15,6 +16,7 @@ port = process.env.PORT || 3000
 
 
 app.use('/api/v1', authRoutes )
+app.use('/api/v1', productRoutes )
 
 
 app.get('/', (req,res)=>{
