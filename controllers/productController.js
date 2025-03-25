@@ -1,7 +1,7 @@
 const express = require('express')
-
+const cloudinary = require('cloudinary').v2;
 const Product = require('../models/ProductModel');
-
+const multer = require('multer')
 const addProduct = async (req,res)=>{
 
      const {
@@ -18,8 +18,10 @@ const addProduct = async (req,res)=>{
       stocks,
       price,
       discount,
-      photo,
     } = req.body;
+
+    const productPic = req.file;
+
     try {
         if(!productName ||
       !description ||
@@ -34,9 +36,19 @@ const addProduct = async (req,res)=>{
       !stocks ||
       !price ||
       !discount ||
-      !photo){
+      !productPic){
         return res.status(400).json({message: "all fields are required"})
 
+        }
+
+        let cloudImage = null;
+
+        try {
+            cloudImage = await cloudinary.uploader.upload(req.file.path)
+
+
+        } catch (error) {
+            return res.status(500).json({message: "Error uploading image to cloudinary.", error: error.message})
         }
 
         const publishDate = new Date(publishSchedule);
@@ -55,7 +67,7 @@ const addProduct = async (req,res)=>{
         stocks,
         price,
         discount,
-        photo,
+        productPic:cloudImage.secure_url,
         })
 
         await newProduct.save()
@@ -67,5 +79,5 @@ const addProduct = async (req,res)=>{
 }
 
 module.exports = {
-    addProduct,
+    addProduct
 }
