@@ -3,12 +3,19 @@ const express = require('express')
 const mongoose = require('mongoose')
 const connectDB = require('./config/connectDB')
 const cloudinary = require('cloudinary').v2
+const cors = require('cors')
 
 const authRoutes = require('./routes/authRoutes')
 const productRoutes = require('./routes/productRoutes')
 
 
 const app = express()
+app.use(cors(
+    {
+        origin: '*',
+        credentials: true,
+    }
+));
 
 app.use(express.json())
 
