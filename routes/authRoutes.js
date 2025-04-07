@@ -3,8 +3,8 @@ const { registerUser, login, verifyOtp, initiateRegistration, verifyOtpFromLink 
 const router = express.Router()
 
 router.post('/initiateRegistration', initiateRegistration);
-router.get('/verifyOtp/:email/:otp', verifyOtpFromLink)
+router.post('/verifyOtp', verifyOtp)
 router.post('/register', registerUser)
 router.post('/login', login)
 
-module.exports = router 
+module.exports = router;

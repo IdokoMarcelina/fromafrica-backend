@@ -33,49 +33,63 @@ const initiateRegistration = async (req, res) => {
 };
 
 
-const verifyOtpFromLink = async (req, res) => {
-    console.log("Request Method:", req.method);
-    console.log("Full Request URL:", req.protocol + "://" + req.get("host") + req.originalUrl);
-    console.log("Request Params:", req.params);
-    const { email, otp } = req.params;
-     console.log("Request Params:", req.params);
+const verifyOtp = async (req, res) => {
+    const email = req.body.email?.trim().toLowerCase();
+    const otp = req.body.otp;
 
-
+    // Validate the OTP and email
     if (!email || !otp || otp === "undefined") {
         return res.status(400).json({ message: "Invalid or missing OTP" });
     }
 
     try {
+        // Find the OTP record for the provided email
         const otpRecord = await Otp.findOne({ email });
 
-        console.log("Stored OTP:", otpRecord?.otp || "No OTP found"); // Log stored OTP
-        console.log("Received OTP:", otp); // Log received OTP
+        console.log("Trying to verify OTP for:", email);
+        console.log("Found OTP Record:", otpRecord);
+        console.log("Received OTP:", otp);
 
+        // If no OTP record is found, return an error
         if (!otpRecord) {
             return res.status(400).json({ message: "OTP expired or not found" });
         }
 
+        // Check if the OTP has expired (more than 10 minutes old)
+        const now = Date.now();
+        const expiryLimit = 10 * 60 * 1000; // 10 minutes
+        const otpAge = now - otpRecord.createdAt.getTime();
+
+        if (otpAge > expiryLimit) {
+            return res.status(400).json({ message: "OTP has expired" });
+        }
+
+        // Verify the OTP
         if (otpRecord.otp !== otp) {
             return res.status(400).json({ message: "Invalid OTP" });
         }
 
+        // Mark OTP as verified
         otpRecord.isVerified = true;
-        await otpRecord.save(); // Save updated OTP record
+        await otpRecord.save();
+
+        // Update the user's verification status
+        const updatedUser = await User.findOneAndUpdate(
+            { email },
+            { isVerified: true },
+            { new: true }
+        );
 
         return res.status(200).json({ message: "Email verified successfully" });
 
-        // await Otp.deleteOne({ email });
-
-        //  return res.status(200).json({
-        //     message: "OTP verified successfully",
-        //     email: email,
-        //     verified: true
-        // });
     } catch (error) {
         console.error("Error verifying OTP:", error);
         res.status(500).json({ message: "Error verifying OTP", error: error.message });
     }
 };
+
+
+
 
 
 
@@ -112,9 +126,10 @@ const registerUser = async (req, res) => {
       role,
       address,
       sellerDetails: role === "seller" ? sellerDetails : null,
-      isVerified: true, // ✅ Set isVerified to true since OTP was verified
+      isVerified: true, // ✅ Set isVerified to true since OTP 
     });
 
+    
     await newUser.save();
     const token = generateJwt(newUser);
 
@@ -173,5 +188,5 @@ module.exports = {
   initiateRegistration,
   registerUser,
   login,
-  verifyOtpFromLink,
-};
+  verifyOtp,
+}
