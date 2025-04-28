@@ -1,6 +1,7 @@
 const Otp = require("../models/OtpModel");
 const User = require("../models/UserModel");
 const crypto = require('crypto');
+const sendEmail = require("./sendEmail");
 
 const sendOtp = async (req, res) => {
     const email = req.body.email?.trim().toLowerCase();
@@ -30,6 +31,15 @@ const sendOtp = async (req, res) => {
 
         // Send the OTP via email here (e.g., using nodemailer)
 
+        const subject = "Your OTP Code";
+        const message = `Your OTP code is ${otp}. It expires in 10 minutes.`;
+        await sendEmail(
+            subject,
+            message,
+            email,
+            process.env.EMAIL_USER,
+            process.env.EMAIL_USER
+        )
         res.status(200).json({ message: "OTP sent successfully" });
 
     } catch (error) {
