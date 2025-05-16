@@ -10,13 +10,26 @@ const productRoutes = require('./routes/productRoutes')
 
 
 const app = express()
-app.use(cors(
-    {
-        origin: '*',
-        credentials: true,
-    }
-));
+// app.use(cors(
+//     {
+//         origin: '*',
+//         credentials: true,
+//     }
+// ));
 
+
+const allowedOrigins = [
+    'https://africa-eta.vercel.app/reg',
+    'http://localhost:3000',
+    'http://localhost:5173',
+    'http://localhost:5174',
+    'http://localhost:5175',
+  ];
+  
+  app.use(cors({
+    origin: allowedOrigins,
+  }));
+  
 app.use(express.json())
 
 connectDB()
