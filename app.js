@@ -20,7 +20,7 @@ const app = express()
 
 const allowedOrigins = [
     'https://africa-eta.vercel.app/reg',
-    'https://africa-kappa.vercel.app/',
+    'https://africa-kappa.vercel.app',
     'http://localhost:3000',
     'http://localhost:5173',
     'http://localhost:5174',
