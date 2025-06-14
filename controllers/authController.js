@@ -126,7 +126,7 @@ const registerUser = async (req, res) => {
       role,
       address,
       sellerDetails: role === "seller" ? sellerDetails : null,
-      isVerified: true, // ✅ Set isVerified to true since OTP 
+      isVerified: true, 
     });
 
     
