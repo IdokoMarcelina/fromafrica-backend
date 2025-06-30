@@ -10,6 +10,19 @@ const productPicStorage = new multer.diskStorage({
 
 })
 
+const certImageStorage = new multer.diskStorage({
+    filename: (req,file,cb)=>{
+        cb(null, Date.now()+ path.extname(file.originalname))
+    }
+
+})
+const avatarStorage = new multer.diskStorage({
+    filename: (req,file,cb)=>{
+        cb(null, Date.now()+ path.extname(file.originalname))
+    }
+
+})
+
 
 
 // const avatarStorage = new CloudinaryStorage({
@@ -22,9 +35,13 @@ const productPicStorage = new multer.diskStorage({
 
 
 const productPicUpload = multer({ storage: productPicStorage});
+const certImageUpload = multer({ storage: certImageStorage });
+const avatarUpload = multer({ storage: avatarStorage });
 // const avatarUpload = multer({storage: avatarStorage})
 
 module.exports = {
     productPicUpload,
+    certImageUpload,
+    avatarUpload
     // avatarUpload
 }

@@ -31,14 +31,24 @@ const userSchema = new mongoose.Schema({
     address: {
         type: String
     },
+    buyerCode: {
+        type: String
+      },
+      
 
     sellerDetails: {
     companyName: String,
     country: String,
     state: String,
     shippingAddress: String,
+    officeAddress:String,
     socialMedia: String,
+    businessRegNo: String,
+    cacNo: String,
+    certImage: String,
+    taxId: String,
   },
+   
     isVerified: { 
         type: Boolean, 
         default: false 

@@ -4,9 +4,13 @@ const mongoose = require('mongoose')
 const connectDB = require('./config/connectDB')
 const cloudinary = require('cloudinary').v2
 const cors = require('cors')
+const cookieParser = require('cookie-parser');
 
 const authRoutes = require('./routes/authRoutes')
 const productRoutes = require('./routes/productRoutes')
+const editSeller = require('./routes/editSeller')
+const sellerDashboard = require('./routes/sellerdashboard')
+const updateBuyer = require('./routes/updateBuyer')
 
 
 const app = express()
@@ -39,6 +43,7 @@ const allowedOrigins = [
   }));
   
 app.use(express.json())
+app.use(cookieParser());
 
 connectDB()
 port = process.env.PORT || 3000
@@ -46,6 +51,9 @@ port = process.env.PORT || 3000
 
 app.use('/api/v1', authRoutes )
 app.use('/api/v1', productRoutes )
+app.use('/api/v1', editSeller )
+app.use('/api/v1', sellerDashboard )
+app.use('/api/v1', updateBuyer )
 
 
 app.get('/', (req,res)=>{
