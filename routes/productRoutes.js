@@ -8,6 +8,7 @@ const router = express.Router()
 
 
 router.post('/addProduct', authenticateUser, isSeller, productPicUpload.array('productPic'), addProduct)
+router.post('/add', productPicUpload.array('productPic'), addProduct)
 router.get('/get-all-products',getAllProducts),
 router.get('/my-products',authenticateUser, isSeller, getSellerProducts),
 router.get('/getSingleProduct/:id',getSingleProduct),
