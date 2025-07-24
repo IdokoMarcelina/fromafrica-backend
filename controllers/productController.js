@@ -52,6 +52,7 @@ const addProduct = async (req, res) => {
       seller: req.user._id 
     });
 
+
     await newProduct.save();
 
     res.status(201).json({
@@ -81,6 +82,8 @@ const getAllProducts = async (req, res) => {
       });
     }
   };
+
+  
 
   const getSingleProduct = async (req, res) => {
     try {
