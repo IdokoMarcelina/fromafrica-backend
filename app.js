@@ -39,7 +39,7 @@ const allowedOrigins = [
         callback(new Error('Not allowed by CORS'));
       }
     },
-    credentials: true, // <-- this is the missing part
+    credentials: true, 
   }));
   
 app.use(express.json())

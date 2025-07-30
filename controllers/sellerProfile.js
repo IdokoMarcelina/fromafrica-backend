@@ -1,7 +1,6 @@
 const User = require('../models/UserModel');
 const cloudinary = require('cloudinary').v2;
 
-// Edit general business info (unchanged)
 const editBusinessInfo = async (req, res) => {
   try {
     const userId = req.user._id;
@@ -48,7 +47,6 @@ const editBusinessInfo = async (req, res) => {
   }
 };
 
-// ✅ Edit company info with cert image upload
 const editCompanyInfo = async (req, res) => {
   try {
     const userId = req.user._id;
@@ -66,7 +64,6 @@ const editCompanyInfo = async (req, res) => {
 
     let certImageUrl = user.sellerDetails.certImage;
 
-    // Handle file upload via Cloudinary if a new image is passed
     if (req.file) {
       const uploadResult = await cloudinary.uploader.upload(req.file.path);
       certImageUrl = uploadResult.secure_url;

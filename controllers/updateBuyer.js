@@ -12,13 +12,11 @@ const updateBuyerProfile = async (req, res) => {
       return res.status(404).json({ message: 'Buyer not found' });
     }
 
-    // Upload new avatar if file is present
     if (req.file) {
       const uploadResult = await cloudinary.uploader.upload(req.file.path);
       user.avatar = uploadResult.secure_url;
     }
 
-    // Update allowed fields
     user.name = name || user.name;
     user.address = address || user.address;
     user.phone = phone || user.phone;

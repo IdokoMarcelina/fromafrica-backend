@@ -7,29 +7,25 @@ const sendOtp = async (req, res) => {
     const email = req.body.email?.trim().toLowerCase();
 
     try {
-        // Check if the user already exists
         const existingUser = await User.findOne({ email });
         if (existingUser) {
             return res.status(400).json({ message: "User with this email already exists" });
         }
 
-        // Generate a random OTP
         const otp = crypto.randomInt(100000, 999999).toString();
         console.log("Generated OTP:", otp);
 
-        // Create or update the OTP record
         let savedOtp = await Otp.findOneAndUpdate(
             { email },
             {
                 $set: { otp },
-                $setOnInsert: { createdAt: new Date() }  // Set `createdAt` correctly on insert
+                $setOnInsert: { createdAt: new Date() }  
             },
             { upsert: true, new: true, setDefaultsOnInsert: true }
         );
 
         console.log("Saved OTP Record:", savedOtp);
 
-        // Send the OTP via email here (e.g., using nodemailer)
 
         const subject = "Your OTP Code";
         const message = `Your OTP code is ${otp}. It expires in 10 minutes.`;

@@ -1,7 +1,6 @@
 const Product = require('../models/ProductModel');
 const Order = require('../models/orderModel');
 
-// 1. Total Products
 const getTotalProducts = async (req, res) => {
   try {
     const sellerId = req.user._id;
@@ -19,7 +18,6 @@ const getTotalProducts = async (req, res) => {
   }
 };
 
-// 2. Total Orders
 const getTotalOrders = async (req, res) => {
   try {
     const sellerId = req.user._id;
@@ -40,7 +38,6 @@ const getTotalOrders = async (req, res) => {
   }
 };
 
-// 3. Total Customers
 const getTotalCustomers = async (req, res) => {
   try {
     const sellerId = req.user._id;
@@ -61,7 +58,6 @@ const getTotalCustomers = async (req, res) => {
   }
 };
 
-// 4. Total Impressions
 const getTotalImpressions = async (req, res) => {
   try {
     const sellerId = req.user._id;

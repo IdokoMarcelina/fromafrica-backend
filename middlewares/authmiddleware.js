@@ -1,11 +1,9 @@
-// middlewares/authmiddleware.js
 const jwt = require('jsonwebtoken');
 const User = require('../models/UserModel');
 
 const authenticateUser = async (req, res, next) => {
   let token;
 
-  // ✅ Try from Bearer token in Authorization header
   if (
     req.headers.authorization &&
     req.headers.authorization.startsWith('Bearer ')
@@ -13,7 +11,6 @@ const authenticateUser = async (req, res, next) => {
     token = req.headers.authorization.split(' ')[1];
   }
 
-  // ✅ Fallback: try from cookies
   else if (req.cookies && req.cookies.token) {
     token = req.cookies.token;
   }

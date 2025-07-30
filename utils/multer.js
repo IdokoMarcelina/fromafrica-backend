@@ -43,5 +43,4 @@ module.exports = {
     productPicUpload,
     certImageUpload,
     avatarUpload
-    // avatarUpload
 }

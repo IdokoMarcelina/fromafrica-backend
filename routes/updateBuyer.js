@@ -8,7 +8,7 @@ const router = express.Router();
 router.put(
   '/update-buyer',
   authenticateUser,
-  avatarUpload.single('avatar'), // form-data key = avatar
+  avatarUpload.single('avatar'), 
   updateBuyerProfile
 );
 

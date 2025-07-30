@@ -20,11 +20,9 @@ const addProduct = async (req, res) => {
     order
   } = req.body;
 
-  const files = req.files; // multiple files
+  const files = req.files; 
 
   try {
-    // Upload all files to Cloudinary
-    //file upload to mulitiple part of the central part of the whole system makes it all less commplicated
     const uploadResults = await Promise.all(
       files.map(file => cloudinary.uploader.upload(file.path))
     );
@@ -48,7 +46,7 @@ const addProduct = async (req, res) => {
       price: Number(price),
       discount,
       order,
-      productPic: imageUrls, // array of image URLs
+      productPic: imageUrls,
       seller: req.user._id 
     });
 
@@ -70,7 +68,7 @@ const addProduct = async (req, res) => {
 
 const getAllProducts = async (req, res) => {
     try {
-      const products = await Product.find().sort({ createdAt: -1 }); // newest first
+      const products = await Product.find().sort({ createdAt: -1 }); 
       res.status(200).json({
         message: 'All products retrieved successfully',
         products
@@ -116,7 +114,6 @@ const getAllProducts = async (req, res) => {
         return res.status(404).json({ message: "Product not found" });
       }
   
-      // Allow only the seller who added it to edit
       if (product.seller.toString() !== sellerId.toString()) {
         return res.status(403).json({ message: "You are not authorized to edit this product" });
       }
