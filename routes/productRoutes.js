@@ -4,6 +4,7 @@ const cloudinary = require('cloudinary').v2
 const { productPicUpload } = require('../utils/multer')
 const authenticateUser = require('../middlewares/authmiddleware')
 const isSeller = require('../middlewares/isSeller')
+const { getOrderStats } = require('../controllers/orderController')
 const router = express.Router()
 
 
@@ -14,5 +15,7 @@ router.get('/my-products',authenticateUser, isSeller, getSellerProducts),
 router.get('/getSingleProduct/:id',getSingleProduct),
 router.put('/editproduct/:id',authenticateUser, isSeller, editProduct),
 router.delete('/deleteProduct/:id',authenticateUser, isSeller, deleteProduct),
+// router.get('/dashboard/order-stats', authenticateUser, isSeller, getOrderStats);
+
 
 module.exports = router
