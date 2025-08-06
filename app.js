@@ -104,6 +104,7 @@ const io = new Server(server, {
 });
 
 const allowedOrigins = [
+  'https://africa-sand.vercel.app',
   'https://africa-eta.vercel.app/reg',
   'https://africa-kappa.vercel.app',
   'http://localhost:3000',
