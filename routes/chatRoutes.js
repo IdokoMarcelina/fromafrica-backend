@@ -22,11 +22,11 @@ router.delete('/chats/:chatId', authenticateUser, chatController.deleteChat);
 router.get('/users/search', authenticateUser, chatController.searchUsers);
 
 router.post('/messages', (req, res, next) => {
-  console.log('🚀 POST /messages route hit!');
+  console.log('POST /messages route hit!');
   console.log('Body before auth:', req.body);
   next();
 }, authenticateUser, (req, res, next) => {
-  console.log('🔐 After authentication, user:', req.user ? req.user.name : 'NO USER');
+  console.log(' After authentication, user:', req.user ? req.user.name : 'NO USER');
   next();
 }, messageController.sendMessage);
 

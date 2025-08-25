@@ -80,8 +80,6 @@
 // });
 
 
-// Make sure your app.js has this exact order:
-
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
@@ -124,17 +122,16 @@ app.use(cors({
   credentials: true,
 }));
 
-// CRITICAL: These middleware must come BEFORE routes
-app.use(express.json()); // This parses JSON bodies
+
+app.use(express.json()); 
 app.use(cookieParser());
 
-// Make io accessible in routes
+
 app.use((req, res, next) => {
   req.io = io;
   next();
 });
 
-// Add debug middleware to see all requests
 app.use((req, res, next) => {
   console.log(`📨 ${req.method} ${req.path}`);
   if (req.body && Object.keys(req.body).length > 0) {
@@ -143,13 +140,14 @@ app.use((req, res, next) => {
   next();
 });
 
-// Import routes
+
 const authRoutes = require('./routes/authRoutes');
 const productRoutes = require('./routes/productRoutes');
 const editSeller = require('./routes/editSeller');
 const sellerDashboard = require('./routes/sellerdashboard');
 const updateBuyer = require('./routes/updateBuyer');
-const chatRoutes = require('./routes/chatRoutes'); // MAKE SURE THIS IS IMPORTED
+const chatRoutes = require('./routes/chatRoutes'); 
+const adminRoutes = require('./routes/admin'); 
 
 connectDB();
 
@@ -170,13 +168,14 @@ io.on("connection", (socket) => {
   });
 });
 
-// Use routes - MAKE SURE CHAT ROUTES ARE REGISTERED
+
 app.use('/api/v1', authRoutes);
 app.use('/api/v1', productRoutes);
 app.use('/api/v1', editSeller);
 app.use('/api/v1', sellerDashboard);
 app.use('/api/v1', updateBuyer);
-app.use('/api/v1', chatRoutes); // CRITICAL: Make sure this line exists
+app.use('/api/v1', chatRoutes); 
+app.use('/api/v1', adminRoutes); 
 
 app.get('/', (req, res) => {
   res.send(`welcome, server running on port ${port}`);
