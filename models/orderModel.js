@@ -26,8 +26,12 @@ const orderSchema = new mongoose.Schema({
   },
   paymentStatus: {
     type: String,
-    enum: ['unpaid', 'paid'],
+    enum: ['unpaid', 'paid', 'escrowed'],
     default: 'unpaid'
+  },
+  escrow: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Escrow'
   },
   deliveryAddress: {
     type: String,

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mock Payment Gateway</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .payment-container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .provider-logo {
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+        .amount {
+            text-align: center;
+            font-size: 36px;
+            color: #27ae60;
+            margin-bottom: 30px;
+        }
+        .mock-notice {
+            background: #ffe6cc;
+            border: 1px solid #ff9500;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .payment-form {
+            margin: 20px 0;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        .button {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .success-btn {
+            background-color: #27ae60;
+            color: white;
+        }
+        .success-btn:hover {
+            background-color: #229954;
+        }
+        .failed-btn {
+            background-color: #e74c3c;
+            color: white;
+        }
+        .failed-btn:hover {
+            background-color: #c0392b;
+        }
+    </style>
+</head>
+<body>
+    <div class="payment-container">
+        <div class="provider-logo" id="providerName">Mock Payment Gateway</div>
+        
+        <div class="mock-notice">
+            🔧 <strong>Development Mode</strong><br>
+            This is a mock payment page for testing purposes only.
+        </div>
+        
+        <div class="amount" id="amount">₦1,000.00</div>
+        
+        <div class="payment-form">
+            <input type="text" placeholder="Card Number: 4084 0840 8408 4081" readonly>
+            <input type="text" placeholder="Expiry: 12/26" readonly>
+            <input type="text" placeholder="CVV: 408" readonly>
+            <input type="text" placeholder="PIN: 0000" readonly>
+        </div>
+        
+        <button class="button success-btn" onclick="simulateSuccess()">
+            💳 Simulate Successful Payment
+        </button>
+        
+        <button class="button failed-btn" onclick="simulateFailure()">
+            ❌ Simulate Failed Payment
+        </button>
+    </div>
+
+    <script>
+        // Get URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const reference = urlParams.get('ref');
+        const provider = urlParams.get('provider') || 'paystack';
+        const amount = urlParams.get('amount') || '1000';
+        
+        // Update page content
+        document.getElementById('providerName').textContent = 
+            `Mock ${provider.charAt(0).toUpperCase() + provider.slice(1)} Gateway`;
+        document.getElementById('amount').textContent = `₦${parseFloat(amount).toLocaleString()}`;
+        
+        function simulateSuccess() {
+            // Simulate processing delay
+            const btn = event.target;
+            btn.textContent = '⏳ Processing Payment...';
+            btn.disabled = true;
+            
+            setTimeout(() => {
+                // Redirect back to frontend with success
+                const callbackUrl = `${window.location.origin}/api/v1/webhook/payment/callback`;
+                window.location.href = `${callbackUrl}?reference=${reference}&status=success&provider=${provider}&transaction_id=mock_txn_${Date.now()}`;
+            }, 2000);
+        }
+        
+        function simulateFailure() {
+            const btn = event.target;
+            btn.textContent = '❌ Payment Failed';
+            btn.disabled = true;
+            
+            setTimeout(() => {
+                const callbackUrl = `${window.location.origin}/api/v1/webhook/payment/callback`;
+                window.location.href = `${callbackUrl}?reference=${reference}&status=failed&provider=${provider}`;
+            }, 1000);
+        }
+    </script>
+</body>
+</html>

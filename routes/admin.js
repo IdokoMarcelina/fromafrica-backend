@@ -10,33 +10,32 @@ const {
   getAllOrders,
   updateUserStatus,
   updateOrderStatus,
-  getRecentActivities
+  getRecentActivities,
+  getAllEscrows,
+  getEscrowStatistics,
+  getDisputedEscrows
 } = require('../controllers/adminController');
+const isAdmin = require('../middlewares/isAdmin');
+const authenticateUser = require('../middlewares/authmiddleware');
 
 
-const isAdmin = (req, res, next) => {
-  if (req.user && req.user.role === 'admin') {
-    next();
-  } else {
-    return res.status(403).json({
-      message: 'Access denied. Admin privileges required.'
-    });
-  }
-};
+
+router.get('/overview', authenticateUser, isAdmin, getAdminOverview);
+router.get('/sales-overview',authenticateUser, isAdmin, getSalesOverview);
+router.get('/vendors-buyers-data',authenticateUser, isAdmin, getVendorsBuyersData);
+router.get('/recent-activities',authenticateUser, isAdmin, getRecentActivities);
 
 
-router.get('/overview', isAdmin, getAdminOverview);
-router.get('/sales-overview', isAdmin, getSalesOverview);
-router.get('/vendors-buyers-data', isAdmin, getVendorsBuyersData);
-router.get('/recent-activities', isAdmin, getRecentActivities);
-
-
-router.get('/vendors', isAdmin, getAllVendors);
-router.get('/customers', isAdmin, getAllCustomers);
-router.put('/users/:userId/status', isAdmin, updateUserStatus);
+router.get('/vendors',authenticateUser, isAdmin, getAllVendors);
+router.get('/customers',authenticateUser, isAdmin, getAllCustomers);
+router.put('/users/:userId/status',authenticateUser, isAdmin, updateUserStatus);
 
 
 router.get('/orders', isAdmin, getAllOrders);
-router.put('/orders/:orderId/status', isAdmin, updateOrderStatus);
+router.put('/orders/:orderId/status',authenticateUser, isAdmin, updateOrderStatus);
 
-module.exports = router;
+router.get('/escrows', authenticateUser, isAdmin, getAllEscrows);
+router.get('/escrow-statistics', authenticateUser, isAdmin, getEscrowStatistics);
+router.get('/disputed-escrows', authenticateUser, isAdmin, getDisputedEscrows);
+
+module.exports = router

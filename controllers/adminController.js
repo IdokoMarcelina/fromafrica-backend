@@ -2,6 +2,7 @@
 const Product = require('../models/ProductModel');
 const Order = require('../models/orderModel');
 const User = require('../models/UserModel');
+const Escrow = require('../models/EscrowModel');
 
 
 const getAdminOverview = async (req, res) => {
@@ -22,13 +23,28 @@ const getAdminOverview = async (req, res) => {
       role: { $in: ['seller', 'vendor'] } 
     });
 
+    const totalEscrows = await Escrow.countDocuments();
+    const activeEscrows = await Escrow.countDocuments({ status: 'funded' });
+    const disputedEscrows = await Escrow.countDocuments({ status: 'disputed' });
+    
+    const escrowValue = await Escrow.aggregate([
+      { $match: { status: { $in: ['funded', 'disputed'] } } },
+      { $group: { _id: null, total: { $sum: '$amount' } } }
+    ]);
+
     res.status(200).json({
       message: 'Admin overview fetched successfully',
       data: {
         totalProducts,
         totalCustomers,
         totalOrders,
-        totalVendors
+        totalVendors,
+        escrowStats: {
+          totalEscrows,
+          activeEscrows,
+          disputedEscrows,
+          totalEscrowValue: escrowValue.length > 0 ? escrowValue[0].total : 0
+        }
       }
     });
   } catch (error) {
@@ -458,6 +474,195 @@ const getRecentActivities = async (req, res) => {
   }
 };
 
+const getAllEscrows = async (req, res) => {
+  try {
+    const { page = 1, limit = 10, status = '', search = '' } = req.query;
+    
+    let query = {};
+    
+    if (status) {
+      query.status = status;
+    }
+
+    const escrows = await Escrow.find(query)
+      .populate('buyer', 'name email')
+      .populate('seller', 'name email')
+      .populate({
+        path: 'order',
+        populate: {
+          path: 'product',
+          select: 'name'
+        }
+      })
+      .sort({ createdAt: -1 })
+      .limit(limit * 1)
+      .skip((page - 1) * limit);
+
+    const total = await Escrow.countDocuments(query);
+
+    const formattedEscrows = escrows.map(escrow => ({
+      _id: escrow._id,
+      escrowNumber: `ESC-${escrow._id.toString().slice(-6)}`,
+      buyerName: escrow.buyer?.name || 'Unknown',
+      buyerEmail: escrow.buyer?.email || '',
+      sellerName: escrow.seller?.name || 'Unknown',
+      productName: escrow.order?.product?.name || 'Unknown Product',
+      amount: escrow.amount,
+      status: escrow.status,
+      createdAt: escrow.createdAt,
+      fundedAt: escrow.fundedAt,
+      releasedAt: escrow.releasedAt,
+      disputeReason: escrow.disputeReason,
+      adminNotes: escrow.adminNotes
+    }));
+
+    res.status(200).json({
+      message: 'Escrows fetched successfully',
+      data: formattedEscrows,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / limit),
+        totalItems: total,
+        itemsPerPage: parseInt(limit)
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: 'Failed to fetch escrows',
+      error: error.message
+    });
+  }
+};
+
+const getEscrowStatistics = async (req, res) => {
+  try {
+    const currentDate = new Date();
+    const startDate = new Date();
+    startDate.setMonth(currentDate.getMonth() - 5); 
+    startDate.setDate(1);
+
+    const escrowData = await Escrow.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: startDate }
+        }
+      },
+      {
+        $group: {
+          _id: {
+            year: { $year: "$createdAt" },
+            month: { $month: "$createdAt" },
+            status: "$status"
+          },
+          count: { $sum: 1 },
+          totalAmount: { $sum: "$amount" }
+        }
+      },
+      {
+        $sort: { "_id.year": 1, "_id.month": 1 }
+      }
+    ]);
+
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                       'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
+    const chartData = [];
+    for (let i = 5; i >= 0; i--) {
+      const date = new Date();
+      date.setMonth(currentDate.getMonth() - i);
+      const year = date.getFullYear();
+      const month = date.getMonth() + 1;
+      
+      const monthEscrows = escrowData.filter(data => 
+        data._id.year === year && data._id.month === month
+      );
+      
+      const funded = monthEscrows.find(e => e._id.status === 'funded') || { count: 0, totalAmount: 0 };
+      const disputed = monthEscrows.find(e => e._id.status === 'disputed') || { count: 0, totalAmount: 0 };
+      const released = monthEscrows.find(e => e._id.status === 'released') || { count: 0, totalAmount: 0 };
+      
+      chartData.push({
+        month: monthNames[month - 1],
+        funded: funded.count,
+        disputed: disputed.count,
+        released: released.count,
+        totalAmount: funded.totalAmount + disputed.totalAmount + released.totalAmount
+      });
+    }
+
+    res.status(200).json({
+      message: 'Escrow statistics fetched successfully',
+      data: chartData
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: 'Failed to fetch escrow statistics',
+      error: error.message
+    });
+  }
+};
+
+const getDisputedEscrows = async (req, res) => {
+  try {
+    const { page = 1, limit = 10 } = req.query;
+    
+    const escrows = await Escrow.find({ status: 'disputed' })
+      .populate('buyer', 'name email phone')
+      .populate('seller', 'name email phone')
+      .populate({
+        path: 'order',
+        populate: {
+          path: 'product',
+          select: 'name price'
+        }
+      })
+      .sort({ createdAt: -1 })
+      .limit(limit * 1)
+      .skip((page - 1) * limit);
+
+    const total = await Escrow.countDocuments({ status: 'disputed' });
+
+    const formattedDisputes = escrows.map(escrow => ({
+      _id: escrow._id,
+      escrowNumber: `ESC-${escrow._id.toString().slice(-6)}`,
+      buyer: {
+        name: escrow.buyer?.name || 'Unknown',
+        email: escrow.buyer?.email || '',
+        phone: escrow.buyer?.phone || ''
+      },
+      seller: {
+        name: escrow.seller?.name || 'Unknown', 
+        email: escrow.seller?.email || '',
+        phone: escrow.seller?.phone || ''
+      },
+      product: {
+        name: escrow.order?.product?.name || 'Unknown Product',
+        price: escrow.order?.product?.price || 0
+      },
+      amount: escrow.amount,
+      disputeReason: escrow.disputeReason,
+      createdAt: escrow.createdAt,
+      transactionHistory: escrow.transactionHistory
+    }));
+
+    res.status(200).json({
+      message: 'Disputed escrows fetched successfully',
+      data: formattedDisputes,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / limit),
+        totalItems: total,
+        itemsPerPage: parseInt(limit)
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: 'Failed to fetch disputed escrows',
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   getAdminOverview,
   getSalesOverview,
@@ -467,5 +672,8 @@ module.exports = {
   getAllOrders,
   updateUserStatus,
   updateOrderStatus,
-  getRecentActivities
+  getRecentActivities,
+  getAllEscrows,
+  getEscrowStatistics,
+  getDisputedEscrows
 };

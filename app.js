@@ -89,6 +89,7 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const http = require("http");
 const { Server } = require("socket.io");
+const path = require('path');
 
 const app = express();
 const server = http.createServer(app);
@@ -148,7 +149,9 @@ const editSeller = require('./routes/editSeller');
 const sellerDashboard = require('./routes/sellerdashboard');
 const updateBuyer = require('./routes/updateBuyer');
 const chatRoutes = require('./routes/chatRoutes'); 
-const adminRoutes = require('./routes/admin'); 
+const adminRoutes = require('./routes/admin');
+const escrowRoutes = require('./routes/escrow');
+const webhookRoutes = require('./routes/webhook'); 
 
 connectDB();
 
@@ -176,10 +179,17 @@ app.use('/api/v1', editSeller);
 app.use('/api/v1', sellerDashboard);
 app.use('/api/v1', updateBuyer);
 app.use('/api/v1', chatRoutes); 
-app.use('/api/v1', adminRoutes); 
+app.use('/api/v1/admin', adminRoutes);
+app.use('/api/v1/escrow', escrowRoutes);
+app.use('/api/v1/webhook', webhookRoutes); 
 
 app.get('/', (req, res) => {
   res.send(`welcome, server running on port ${port}`);
+});
+
+// Serve mock payment page for development
+app.get('/mock-payment.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'utils/mockPaymentPage.html'));
 });
 
 // Use server.listen instead of app.listen for Socket.IO
