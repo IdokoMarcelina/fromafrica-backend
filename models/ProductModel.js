@@ -65,10 +65,17 @@ const productSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true
-      }
+      },
+
+    purchases: {
+        type: Number,
+        default: 0
+    },
       
    
 }, 
+
+
 
 { timestamps : true}
 

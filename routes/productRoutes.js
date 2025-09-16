@@ -1,5 +1,5 @@
 const express = require('express')
-const { addProduct, getAllProducts, getSellerProducts, getSingleProduct, editProduct, deleteProduct } = require('../controllers/productController')
+const { addProduct, getAllProducts, getSellerProducts, getSingleProduct, editProduct, deleteProduct, getLatestProducts, getMostPurchasedProducts } = require('../controllers/productController')
 const cloudinary = require('cloudinary').v2
 const { productPicUpload } = require('../utils/multer')
 const authenticateUser = require('../middlewares/authmiddleware')
@@ -15,6 +15,10 @@ router.get('/my-products',authenticateUser, isSeller, getSellerProducts),
 router.get('/getSingleProduct/:id',getSingleProduct),
 router.put('/editproduct/:id',authenticateUser, isSeller, editProduct),
 router.delete('/deleteProduct/:id',authenticateUser, isSeller, deleteProduct),
+
+
+router.get('/latest', getLatestProducts);
+router.get('/most-purchased', getMostPurchasedProducts);
 // router.get('/dashboard/order-stats', authenticateUser, isSeller, getOrderStats);
 
 

@@ -185,11 +185,46 @@ const getAllProducts = async (req, res) => {
   };
   
 
+  // Get latest products
+const getLatestProducts = async (req, res) => {
+  try {
+    const products = await Product.find().sort({ createdAt: -1 }).limit(10);
+    res.status(200).json({
+      message: "Latest products retrieved successfully",
+      products
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to retrieve latest products",
+      error: error.message
+    });
+  }
+};
+
+// Get most purchased products
+const getMostPurchasedProducts = async (req, res) => {
+  try {
+    const products = await Product.find().sort({ purchases: -1 }).limit(10);
+    res.status(200).json({
+      message: "Most purchased products retrieved successfully",
+      products
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to retrieve most purchased products",
+      error: error.message
+    });
+  }
+};
+
+
 module.exports = {
   addProduct,
   getAllProducts,
   getSingleProduct,
   editProduct,
   deleteProduct,
-  getSellerProducts
+  getSellerProducts,
+  getLatestProducts,
+  getMostPurchasedProducts
 };
