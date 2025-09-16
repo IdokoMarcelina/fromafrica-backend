@@ -6,7 +6,7 @@ const isAdmin = async (req, res, next) => {
       return next(); 
     }
     
-    const user = await User.findById(req.user._id); 
+    const user = await User.findById(req.user.id); 
     if (user && user.role === 'admin') {
       return next();
     }

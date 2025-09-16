@@ -13,7 +13,10 @@ const {
   getRecentActivities,
   getAllEscrows,
   getEscrowStatistics,
-  getDisputedEscrows
+  getDisputedEscrows,
+  updatePassword,
+  updateNotifications,
+  approveBusiness
 } = require('../controllers/adminController');
 const isAdmin = require('../middlewares/isAdmin');
 const authenticateUser = require('../middlewares/authmiddleware');
@@ -25,6 +28,10 @@ router.get('/sales-overview',authenticateUser, isAdmin, getSalesOverview);
 router.get('/vendors-buyers-data',authenticateUser, isAdmin, getVendorsBuyersData);
 router.get('/recent-activities',authenticateUser, isAdmin, getRecentActivities);
 
+
+router.put("/update-password",authenticateUser, isAdmin, updatePassword);
+router.put("/update-notifications",authenticateUser, isAdmin, updateNotifications);
+router.put('/approve-business/:id',authenticateUser, isAdmin, approveBusiness);
 
 router.get('/vendors',authenticateUser, isAdmin, getAllVendors);
 router.get('/customers',authenticateUser, isAdmin, getAllCustomers);

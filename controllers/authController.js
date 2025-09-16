@@ -4,7 +4,7 @@ const User = require('../models/UserModel');
 const jwt = require('jsonwebtoken');
 const Otp = require('../models/OtpModel');
 const sendOtp = require('../utils/sendOtp'); 
-const bcrypt = require('bcryptjs')
+const bcrypt = require('bcryptjs');
 
 const generateJwt = (user) => {
   return jwt.sign(
@@ -14,6 +14,7 @@ const generateJwt = (user) => {
   );
 };
 
+// Step 1: Start registration (send OTP)
 const initiateRegistration = async (req, res) => {
   const { email } = req.body;
   console.log("Received Request Body:", req.body); 
@@ -30,60 +31,56 @@ const initiateRegistration = async (req, res) => {
   }
 };
 
-
+// Step 2: Verify OTP
 const verifyOtp = async (req, res) => {
-    const email = req.body.email?.trim().toLowerCase();
-    const otp = req.body.otp;
+  const email = req.body.email?.trim().toLowerCase();
+  const otp = req.body.otp;
 
-    if (!email || !otp || otp === "undefined") {
-        return res.status(400).json({ message: "Invalid or missing OTP" });
+  if (!email || !otp || otp === "undefined") {
+    return res.status(400).json({ message: "Invalid or missing OTP" });
+  }
+
+  try {
+    const otpRecord = await Otp.findOne({ email });
+
+    console.log("Trying to verify OTP for:", email);
+    console.log("Found OTP Record:", otpRecord);
+    console.log("Received OTP:", otp);
+
+    if (!otpRecord) {
+      return res.status(400).json({ message: "OTP expired or not found" });
     }
 
-    try {
-        const otpRecord = await Otp.findOne({ email });
+    const now = Date.now();
+    const expiryLimit = 10 * 60 * 1000; 
+    const otpAge = now - otpRecord.createdAt.getTime();
 
-        console.log("Trying to verify OTP for:", email);
-        console.log("Found OTP Record:", otpRecord);
-        console.log("Received OTP:", otp);
-
-        if (!otpRecord) {
-            return res.status(400).json({ message: "OTP expired or not found" });
-        }
-
-        const now = Date.now();
-        const expiryLimit = 10 * 60 * 1000; 
-        const otpAge = now - otpRecord.createdAt.getTime();
-
-        if (otpAge > expiryLimit) {
-            return res.status(400).json({ message: "OTP has expired" });
-        }
-
-        if (otpRecord.otp !== otp) {
-            return res.status(400).json({ message: "Invalid OTP" });
-        }
-
-        otpRecord.isVerified = true;
-        await otpRecord.save();
-
-        const updatedUser = await User.findOneAndUpdate(
-            { email },
-            { isVerified: true },
-            { new: true }
-        );
-
-        return res.status(200).json({ message: "Email verified successfully" });
-
-    } catch (error) {
-        console.error("Error verifying OTP:", error);
-        res.status(500).json({ message: "Error verifying OTP", error: error.message });
+    if (otpAge > expiryLimit) {
+      return res.status(400).json({ message: "OTP has expired" });
     }
+
+    if (otpRecord.otp !== otp) {
+      return res.status(400).json({ message: "Invalid OTP" });
+    }
+
+    otpRecord.isVerified = true;
+    await otpRecord.save();
+
+    await User.findOneAndUpdate(
+      { email },
+      { isVerified: true },
+      { new: true }
+    );
+
+    return res.status(200).json({ message: "Email verified successfully" });
+
+  } catch (error) {
+    console.error("Error verifying OTP:", error);
+    res.status(500).json({ message: "Error verifying OTP", error: error.message });
+  }
 };
 
-
-
-
-
-
+// Step 3: Register User
 const registerUser = async (req, res) => {
   const { email, password, name, phone, avatar, role, address, sellerDetails } = req.body;
 
@@ -113,19 +110,26 @@ const registerUser = async (req, res) => {
       role,
       address,
       sellerDetails: role === "seller" ? sellerDetails : null,
-      isVerified: true, 
+      isVerified: true,
+      businessStatus: role === "seller" ? "pending" : "approved"  // ✅ sellers start with pending
     });
 
-    
     await newUser.save();
     const token = generateJwt(newUser);
 
- 
     await Otp.deleteOne({ email });
 
     res.status(201).json({
-      message: "User registered successfully",
-      user: { _id: newUser._id, email, token },
+      message: role === "seller"
+        ? "User registered successfully. Awaiting admin approval."
+        : "User registered successfully",
+      user: { 
+        _id: newUser._id, 
+        email: newUser.email, 
+        role: newUser.role,
+        businessStatus: newUser.businessStatus, // ✅ return status
+        token 
+      },
     });
 
   } catch (error) {
@@ -134,8 +138,7 @@ const registerUser = async (req, res) => {
   }
 };
 
-
-
+// Step 4: Login
 const login = async (req, res) => {
   const { email, password } = req.body;
 
@@ -154,31 +157,22 @@ const login = async (req, res) => {
       return res.status(400).json({ message: "Email not verified. Please verify your email." });
     }
 
-    // const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
-
     const token = jwt.sign(
-  { id: user._id, role: user.role },
-  process.env.JWT_SECRET,
-  { expiresIn: "7d" }
-);
-
-
-    // res.status(200).json({
-    //   message: "Login successful",
-    //   user: { _id: user._id, email,role, token },
-      
-    // });
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
 
     res.status(200).json({
-  message: "Login successful",
-  user: {
-    _id: user._id,
-    email: user.email,
-    role: user.role, 
-    token
-  }
-});
-
+      message: "Login successful",
+      user: {
+        _id: user._id,
+        email: user.email,
+        role: user.role,
+        businessStatus: user.businessStatus, // ✅ include here too
+        token
+      }
+    });
 
   } catch (error) {
     console.error("Login error:", error);
@@ -186,9 +180,10 @@ const login = async (req, res) => {
   }
 };
 
+// Step 5: Get all users
 const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find({}, '_id name email role')
+    const users = await User.find({}, '_id name email role businessStatus');
     res.status(200).json({ users });
   } catch (error) {
     console.error("Error fetching users:", error);
@@ -196,11 +191,10 @@ const getAllUsers = async (req, res) => {
   }
 };
 
-
 module.exports = {
   initiateRegistration,
   registerUser,
   login,
   verifyOtp,
   getAllUsers
-}
+};

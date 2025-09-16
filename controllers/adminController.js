@@ -3,6 +3,74 @@ const Product = require('../models/ProductModel');
 const Order = require('../models/orderModel');
 const User = require('../models/UserModel');
 const Escrow = require('../models/EscrowModel');
+const adminService = require('../services/adminService');
+
+// Update password
+const updatePassword = async (req, res) => {
+  try {
+    const { newPassword } = req.body;
+    const adminId = req.user.id; // comes from auth middleware
+
+    if (!newPassword) {
+      return res.status(400).json({ error: "Password is required" });
+    }
+
+    const result = await adminService.updatePassword(adminId, newPassword);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Update admin notification settings
+const updateNotifications = async (req, res) => {
+  try {
+    const adminId = req.user.id;
+    const newSettings = req.body;
+
+    const result = await adminService.updateNotifications(adminId, newSettings);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
+// Approve or reject seller business registration
+const approveBusiness = async (req, res) => {
+  try {
+    const { id } = req.params; // seller id from URL
+    const { status } = req.body; // "approved" or "rejected"
+
+    if (!["approved", "rejected"].includes(status)) {
+      return res.status(400).json({ message: "Invalid status value" });
+    }
+
+    // find seller by ID
+    const seller = await User.findOne({ _id: id, role: "seller" });
+
+    if (!seller) {
+      return res.status(404).json({ message: "Seller not found" });
+    }
+
+    // update business status
+    seller.businessStatus = status;
+    await seller.save();
+
+    res.status(200).json({
+      message: "Business status updated successfully",
+      seller: {
+        _id: seller._id,
+        email: seller.email,
+        role: seller.role,
+        businessStatus: seller.businessStatus,
+      },
+    });
+  } catch (error) {
+    console.error("Approve business error:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
 
 
 const getAdminOverview = async (req, res) => {
@@ -675,5 +743,8 @@ module.exports = {
   getRecentActivities,
   getAllEscrows,
   getEscrowStatistics,
-  getDisputedEscrows
+  getDisputedEscrows,
+  updatePassword,
+  updateNotifications,
+  approveBusiness
 };
