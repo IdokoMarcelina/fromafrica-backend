@@ -3,7 +3,6 @@ const Subscription = require('../models/subscriptionModel');
 const Waiver = require('../models/WaiverModel');
 const sendEmail = require('../utils/sendEmail');
 
-// 1️⃣ Admin sets subscription fee
 const setSubscriptionFee = async (req, res) => {
   try {
     const { fee, currency } = req.body;
@@ -25,7 +24,6 @@ const setSubscriptionFee = async (req, res) => {
   }
 };
 
-// 2️⃣ Admin creates waiver code
 const createWaiver = async (req, res) => {
   try {
     const { code, expiresAt } = req.body;
@@ -44,7 +42,6 @@ const createWaiver = async (req, res) => {
   }
 };
 
-// 3️⃣ User applies waiver code
 const applyWaiver = async (req, res) => {
   try {
     const { code } = req.body;

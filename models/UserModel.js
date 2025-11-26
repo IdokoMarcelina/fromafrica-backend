@@ -75,7 +75,7 @@ const userSchema = new mongoose.Schema({
   },
 
   subscriptionPlan: {
-    type: String, // e.g., 'paid', 'waiver'
+    type: String, 
     default: null,
   },
 
