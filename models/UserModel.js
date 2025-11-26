@@ -68,6 +68,28 @@ const userSchema = new mongoose.Schema({
     maintenanceMode: { type: Boolean, default: false },
     autoApproveUsers: { type: Boolean, default: false },
   },
+  subscriptionStatus: {
+    type: String,
+    enum: ['inactive', 'active'],
+    default: 'inactive',
+  },
+
+  subscriptionPlan: {
+    type: String, // e.g., 'paid', 'waiver'
+    default: null,
+  },
+
+  subscriptionExpiresAt: {
+    type: Date,
+    default: null,
+  },
+
+  hasUsedWaiver: {
+    type: Boolean,
+    default: false,
+  },
+
+
 }, { timestamps: true });
 
 

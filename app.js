@@ -155,6 +155,8 @@ const chatRoutes = require('./routes/chatRoutes');
 const adminRoutes = require('./routes/admin');
 const escrowRoutes = require('./routes/escrow');
 const webhookRoutes = require('./routes/webhook'); 
+const subscriptionRoutes = require('./routes/subscriptionRoutes');
+
 
 connectDB();
 
@@ -185,6 +187,9 @@ app.use('/api/v1', chatRoutes);
 app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/escrow', escrowRoutes);
 app.use('/api/v1/webhook', webhookRoutes); 
+app.use('/api/subscription', subscriptionRoutes);
+
+
 
 app.get('/', (req, res) => {
   res.send(`welcome, server running on port ${port}`);
