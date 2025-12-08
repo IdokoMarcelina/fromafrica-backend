@@ -5,37 +5,58 @@ const sendEmail = require("./sendEmail");
 
 const sendOtp = async (req, res) => {
     const email = req.body.email?.trim().toLowerCase();
+    const type = req.body.type || 'registration';
 
     try {
-        const existingUser = await User.findOne({ email });
-        if (existingUser) {
-            return res.status(400).json({ message: "User with this email already exists" });
+        let userId = null;
+
+        // For registration, check if user exists
+        if (type === 'registration') {
+            const existingUser = await User.findOne({ email });
+            if (existingUser) {
+                return res.status(400).json({ message: "User with this email already exists" });
+            }
+        } else if (type === 'forgot-password') {
+            // For forgot-password, user must exist
+            const user = await User.findOne({ email });
+            if (!user) {
+                return res.status(404).json({ message: "User with this email does not exist" });
+            }
+            userId = user._id;
         }
 
+        // Delete old OTP of same type
+        await Otp.deleteMany({ email, type });
+
         const otp = crypto.randomInt(100000, 999999).toString();
-        console.log("Generated OTP:", otp);
+        const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-        let savedOtp = await Otp.findOneAndUpdate(
-            { email },
-            {
-                $set: { otp },
-                $setOnInsert: { createdAt: new Date() }  
-            },
-            { upsert: true, new: true, setDefaultsOnInsert: true }
-        );
+        console.log(`Generated ${type} OTP:`, otp);
 
-        console.log("Saved OTP Record:", savedOtp);
+        // Create new OTP
+        await Otp.create({
+            user: userId, // null for registration, userId for forgot-password
+            email,
+            otp,
+            type,
+            created_at: new Date(),
+            expires_at: expiresAt,
+            isVerified: false
+        });
 
+        console.log("Saved OTP Record - Type:", type, "User ID:", userId);
 
-        const subject = "Your OTP Code";
+        const subject = type === 'registration' ? "Email Verification OTP" : "Password Reset OTP";
         const message = `Your OTP code is ${otp}. It expires in 10 minutes.`;
+        
         await sendEmail(
             subject,
             message,
             email,
             process.env.EMAIL_USER,
             process.env.EMAIL_USER
-        )
+        );
+
         res.status(200).json({ message: "OTP sent successfully" });
 
     } catch (error) {
@@ -44,4 +65,4 @@ const sendOtp = async (req, res) => {
     }
 };
 
-module.exports = sendOtp
+module.exports = sendOtp;

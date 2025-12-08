@@ -217,6 +217,28 @@ const getMostPurchasedProducts = async (req, res) => {
   }
 };
 
+const getMostViewedProducts = async (req, res) => {
+  try {
+    const products = await Product.find({ status: 'active' })
+      .sort({ views: -1 })
+      .limit(10);
+
+    res.status(200).json({
+      message: "Most viewed products retrieved successfully",
+      products
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to retrieve most viewed products",
+      error: error.message
+    });
+  }
+};
+
+
+
+
 
 module.exports = {
   addProduct,
@@ -226,5 +248,6 @@ module.exports = {
   deleteProduct,
   getSellerProducts,
   getLatestProducts,
-  getMostPurchasedProducts
+  getMostPurchasedProducts,
+  getMostViewedProducts
 };
